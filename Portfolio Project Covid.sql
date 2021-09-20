@@ -1,125 +1,125 @@
 --Seleccionar la data a  utilizar
 
---SELECT *
---FROM CovidDeaths
---ORDER BY 3,4
+SELECT *
+FROM CovidDeaths
+ORDER BY 3,4
 
---SELECT location, date, total_cases, new_cases, total_deaths, population
---FROM CovidDeaths
---ORDER BY 1,2
+SELECT location, date, total_cases, new_cases, total_deaths, population
+FROM CovidDeaths
+ORDER BY 1,2
 
 -- Casos totales vs muertes totales 
 
---SELECT location, date, total_cases, total_deaths, (total_deaths/total_cases)*100 AS 'DeathPercentage'
---FROM CovidDeaths
---WHERE location LIKE '%states'
---ORDER BY 1,2
+SELECT location, date, total_cases, total_deaths, (total_deaths/total_cases)*100 AS 'DeathPercentage'
+FROM CovidDeaths
+WHERE location LIKE '%states'
+ORDER BY 1,2
 
--- Casos totales vs poblaci髇
--- Cantidad de la poblaci髇 que contrajo COVID-19
---SELECT location, date, total_cases, population, (total_cases/population)*100 AS 'InfectiousRate'
---FROM CovidDeaths
---WHERE location LIKE '%chile'
---ORDER BY 1,2
+-- Casos totales vs poblaci贸n
+-- Cantidad de la poblaci贸n que contrajo COVID-19
+SELECT location, date, total_cases, population, (total_cases/population)*100 AS 'InfectiousRate'
+FROM CovidDeaths
+WHERE location LIKE '%chile'
+ORDER BY 1,2
 
--- Pa韘es con mayor tasa de infecci髇 en comparaci髇 con poblaci髇
---SELECT location, MAX(total_cases) AS 'HighestInfectionCount', population, MAX((total_cases/population))*100 AS 'InfectiousRate'
---FROM CovidDeaths
---GROUP BY location, population
---ORDER BY InfectiousRate DESC
+-- Pa铆ses con mayor tasa de infecci贸n en comparaci贸n con poblaci贸n
+SELECT location, MAX(total_cases) AS 'HighestInfectionCount', population, MAX((total_cases/population))*100 AS 'InfectiousRate'
+FROM CovidDeaths
+GROUP BY location, population
+ORDER BY InfectiousRate DESC
 
- --Pa韘es con mayor tasa de fallecidos por poblaci髇, se divide por 10 por el tipo de dato nvarchar
---SELECT location, MAX(cast(total_deaths/10 as int)) AS 'TotalDeathsCount', population, MAX((total_deaths/population))*100 AS 'DeathRate'
---FROM CovidDeaths
---GROUP BY location, population
---ORDER BY DeathRate DESC
+ --Pa铆ses con mayor tasa de fallecidos por poblaci贸n, se divide por 10 por el tipo de dato nvarchar
+SELECT location, MAX(cast(total_deaths/10 as int)) AS 'TotalDeathsCount', population, MAX((total_deaths/population))*100 AS 'DeathRate'
+FROM CovidDeaths
+GROUP BY location, population
+ORDER BY DeathRate DESC
 
---SELECT location, MAX(floor(total_deaths/10)) AS 'TotalDeathsCount'
---FROM CovidDeaths
---WHERE continent is not null
---GROUP BY location
---ORDER BY TotalDeathsCount DESC
+SELECT location, MAX(floor(total_deaths/10)) AS 'TotalDeathsCount'
+FROM CovidDeaths
+WHERE continent is not null
+GROUP BY location
+ORDER BY TotalDeathsCount DESC
 
---Agrupaci髇 de datos por continente
---SELECT location, MAX(floor(total_deaths/10)) AS 'TotalDeathsCount'
---FROM CovidDeaths
---WHERE continent is null
---GROUP BY location
+--Agrupaci贸n de datos por continente
+SELECT location, MAX(floor(total_deaths/10)) AS 'TotalDeathsCount'
+FROM CovidDeaths
+WHERE continent is null
+GROUP BY location
 
---Agrupaci髇 de datos por d韆
---SELECT date, SUM(floor(new_cases/10)) AS 'TotalCases', SUM(floor(total_deaths/10)) AS 'DeathsCount'
---FROM CovidDeaths
---WHERE continent is not null
---GROUP BY date
---ORDER BY 1,2
+--Agrupaci贸n de datos por d铆a
+SELECT date, SUM(floor(new_cases/10)) AS 'TotalCases', SUM(floor(total_deaths/10)) AS 'DeathsCount'
+FROM CovidDeaths
+WHERE continent is not null
+GROUP BY date
+ORDER BY 1,2
 
---Uni髇 de tablas CovidDeaths y CovidVaccinations
---SELECT *
---FROM CovidDeaths AS CD
---INNER JOIN CovidVaccinations AS CV
---ON CD.date = CV.date
---AND CD.location = CV.location
-
-
----- Suma de vacunas por d韆 en cada pa韘
---SELECT CD.continent, CD.location, CD.date, population, CV.new_vaccinations, CV.total_vaccinations
---FROM CovidDeaths AS CD
---INNER JOIN CovidVaccinations AS CV
---ON CD.date = CV.date
---AND CD.location = CV.location
---WHERE CD.continent is not null
---ORDER BY 2,3
-
--- Tasa de vacunaci髇 por persona con CTE (cantidad de vacunas por persona)
-
---WITH PopvsVac(continent, location, date, population, new_vaccinations, total_vaccinations)
---AS
---(
---SELECT CD.continent, CD.location, CD.date, population, CV.new_vaccinations, CV.total_vaccinations
---FROM CovidDeaths AS CD
---INNER JOIN CovidVaccinations AS CV
---ON CD.date = CV.date
---AND CD.location = CV.location
---WHERE CD.continent is not null
---)
+--Uni贸n de tablas CovidDeaths y CovidVaccinations
+SELECT *
+FROM CovidDeaths AS CD
+INNER JOIN CovidVaccinations AS CV
+ON CD.date = CV.date
+AND CD.location = CV.location
 
 
---SELECT *, (total_vaccinations/(population/10)*100) AS 'VaccinationRate' 
---FROM PopvsVac
+---- Suma de vacunas por d铆a en cada pa铆s
+SELECT CD.continent, CD.location, CD.date, population, CV.new_vaccinations, CV.total_vaccinations
+FROM CovidDeaths AS CD
+INNER JOIN CovidVaccinations AS CV
+ON CD.date = CV.date
+AND CD.location = CV.location
+WHERE CD.continent is not null
+ORDER BY 2,3
+
+-- Tasa de vacunaci贸n por persona con CTE (cantidad de vacunas por persona)
+
+WITH PopvsVac(continent, location, date, population, new_vaccinations, total_vaccinations)
+AS
+(
+SELECT CD.continent, CD.location, CD.date, population, CV.new_vaccinations, CV.total_vaccinations
+FROM CovidDeaths AS CD
+INNER JOIN CovidVaccinations AS CV
+ON CD.date = CV.date
+AND CD.location = CV.location
+WHERE CD.continent is not null
+)
+
+
+SELECT *, (total_vaccinations/(population/10)*100) AS 'VaccinationRate' 
+FROM PopvsVac
 
 
 -- Temp table
---CREATE TABLE #DosesPerPerson
---(
---continent nvarchar(255),
---location nvarchar(255), 
---date datetime,
---population numeric,
---new_vaccinations nvarchar(255),
---total_vaccinations nvarchar(255)
---)
+CREATE TABLE #DosesPerPerson
+(
+continent nvarchar(255),
+location nvarchar(255), 
+date datetime,
+population numeric,
+new_vaccinations nvarchar(255),
+total_vaccinations nvarchar(255)
+)
 
---INSERT INTO #DosesPerPerson
---SELECT CD.continent, CD.location, CD.date, population, CV.new_vaccinations, CV.total_vaccinations
---FROM CovidDeaths AS CD
---INNER JOIN CovidVaccinations AS CV
---ON CD.date = CV.date
---AND CD.location = CV.location
---WHERE CD.continent is not null
+INSERT INTO #DosesPerPerson
+SELECT CD.continent, CD.location, CD.date, population, CV.new_vaccinations, CV.total_vaccinations
+FROM CovidDeaths AS CD
+INNER JOIN CovidVaccinations AS CV
+ON CD.date = CV.date
+AND CD.location = CV.location
+WHERE CD.continent is not null
 
---SELECT *, (total_vaccinations/(population/10)*100) AS 'VaccinationRate' 
---FROM #DosesPerPerson
+SELECT *, (total_vaccinations/(population/10)*100) AS 'VaccinationRate' 
+FROM #DosesPerPerson
 
 
 -- Vista
 
---CREATE VIEW DosesPerPerson AS
---SELECT CD.continent, CD.location, CD.date, population, CV.new_vaccinations, CV.total_vaccinations
---FROM CovidDeaths AS CD
---INNER JOIN CovidVaccinations AS CV
---ON CD.date = CV.date
---AND CD.location = CV.location
---WHERE CD.continent is not null
+CREATE VIEW DosesPerPerson AS
+SELECT CD.continent, CD.location, CD.date, population, CV.new_vaccinations, CV.total_vaccinations
+FROM CovidDeaths AS CD
+INNER JOIN CovidVaccinations AS CV
+ON CD.date = CV.date
+AND CD.location = CV.location
+WHERE CD.continent is not null
 
 
 
